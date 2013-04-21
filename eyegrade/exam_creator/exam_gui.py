@@ -5,6 +5,8 @@ from PyQt4.QtGui import (QAction,
                          QDialog,
                          QDialogButtonBox,
                          QHBoxLayout,
+                         QListWidget,
+                         QListWidgetItem,
                          QMainWindow,
                          QIcon,
                          QKeySequence,
@@ -167,6 +169,26 @@ class ActionsManager(object):
 #         self.setLayout(layout)
 #         self.button.clicked.connect(self.close)
 
+class PreviewView(QWidget):
+    def __init__(self, parent):
+        super(PreviewView, self).__init__(parent)
+
+
+class Q(QListWidget):
+    def __init__(self, parent, items=None):
+        super(Q, self).__init__(parent)
+        QListWidgetItem('Q #1', self)
+
+class QuestionView(QWidget):
+    def __init__(self, parent, content=None):
+        super(QuestionView, self).__init__(parent)
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        self.listWidget = QListWidget()
+        QListWidgetItem('#1', self.listWidget)
+        QListWidgetItem('#2', self.listWidget)
+        layout.addWidget(self.listWidget)
+
 class ExamView(QWidget):
     def __init__(self, parent):
         super(ExamView, self).__init__(parent)
@@ -184,11 +206,14 @@ class CenterView(QWidget):
         layout = QVBoxLayout()
         self.setLayout(layout)
         self.examview = ExamView(self)
+        #self.questionview = QuestionView(self)
+        self.questionview = Q(self)
         self.label_up_centerview = QLabel('Label Up (CenterView)')
         self.label_down_centerview = QLabel('Label Down (CenterView)')
         layout.addWidget(self.label_up_centerview)
         layout.addWidget(self.examview)
         layout.addWidget(self.label_down_centerview)
+        layout.addWidget(self.questionview)
 
     def register_listener(self, key, listener):
         """Registers listeners for the center view.
