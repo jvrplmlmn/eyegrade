@@ -5,6 +5,7 @@ from PyQt4.QtGui import (QAction,
                          QDialog,
                          QDialogButtonBox,
                          QHBoxLayout,
+                         QLineEdit,
                          QListWidget,
                          QListWidgetItem,
                          QMainWindow,
@@ -25,6 +26,8 @@ from eyegrade.utils import (resource_path,
                             source_location)
 import eyegrade.utils as utils
 
+from functools import partial
+
 class DialogAbout(QDialog):
     def __init__(self, parent):
         super(DialogAbout, self).__init__(parent)
@@ -33,9 +36,11 @@ class DialogAbout(QDialog):
              <center>
              <p><img src='{0}' width='64'> <br>
              {1} {2} <br>
-             (c) 2013 Javier Palomo Almena <br>
+             (c) 2010-2013 Jesus Arias Fisteus <br>
              <a href='{3}'>{3}</a> <br>
-             <a href='{4}'>{4}</a>
+             <a href='{4}'>{4}</a> <br>
+             (c) 2013 Javier Palomo Almena <br>
+             <a href='{5}'>{5}</a>
 
              <p>
              This program is free software: you can redistribute it<br>
@@ -59,7 +64,8 @@ class DialogAbout(QDialog):
              </p>
              </center>
              """.format(resource_path('logo.svg'), program_name, version,
-                        web_location, source_location)
+                        web_location, source_location,
+                        'https://github.com/jvrplmlmn/eyegrade')
         self.setWindowTitle('About')
         layout = QVBoxLayout(self)
         self.setLayout(layout)
@@ -84,6 +90,8 @@ class ActionsManager(object):
 
     _actions_help_data = [
         ('help', None, 'Online &Help', None),
+        ('website', None, '&Website', None),
+        ('source', None, '&Source code at GitHub', None),
         ('about', None, '&About', None),
         ]
 
@@ -172,12 +180,16 @@ class ActionsManager(object):
 class PreviewView(QWidget):
     def __init__(self, parent):
         super(PreviewView, self).__init__(parent)
+        layout = QHBoxLayout()
+        self.setLayout(layout)
+        self.label = QLabel('PDF Preview View, \nnot implemented')
+        layout.addWidget(self.label)
 
 
-class Q(QListWidget):
-    def __init__(self, parent, items=None):
-        super(Q, self).__init__(parent)
-        QListWidgetItem('Q #1', self)
+# class Q(QListWidget):
+#     def __init__(self, parent, items=None):
+#         super(Q, self).__init__(parent)
+#         QListWidgetItem('Q #1', self)
 
 class QuestionView(QWidget):
     def __init__(self, parent, content=None):
@@ -194,26 +206,12 @@ class ExamView(QWidget):
         super(ExamView, self).__init__(parent)
         layout = QVBoxLayout()
         self.setLayout(layout)
+        self.infoview = InfoWidget()
         self.label_examview = QLabel('Label (ExamView)')
         self.button = QPushButton('Button (ExamView)')
+        layout.addWidget(self.infoview)
         layout.addWidget(self.label_examview)
         layout.addWidget(self.button)
-
-
-class CenterView(QWidget):
-    def __init__(self, parent=None):
-        super(CenterView, self).__init__(parent)
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-        self.examview = ExamView(self)
-        #self.questionview = QuestionView(self)
-        self.questionview = Q(self)
-        self.label_up_centerview = QLabel('Label Up (CenterView)')
-        self.label_down_centerview = QLabel('Label Down (CenterView)')
-        layout.addWidget(self.label_up_centerview)
-        layout.addWidget(self.examview)
-        layout.addWidget(self.label_down_centerview)
-        layout.addWidget(self.questionview)
 
     def register_listener(self, key, listener):
         """Registers listeners for the center view.
@@ -222,6 +220,118 @@ class CenterView(QWidget):
 
         - ('_____', '_____'): description
         """
+        if key[0] == 'info':
+            self.infoview.register_listener(key[1:], listener)
+        else:
+            assert False, 'Unkown event key {0}'.format(key)
+
+class InfoWidget(QWidget):
+    def __init__(self):
+        super(InfoWidget, self).__init__()
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        self.subject_label = QLabel('Subject')
+        self.degree_label = QLabel('Degree')
+        self.title_label = QLabel('Title')
+        self.date_label = QLabel('Date')
+        self.duration_label = QLabel('Duration')
+
+        self.subject = QLineEdit('SUBJECT')
+        self.degree = QLineEdit('DEGREE')
+        self.title = QLineEdit('TITLE')
+        self.date = QLineEdit('January 1st, 2013')
+        self.duration = QLineEdit('10 min.')
+
+        layout_subject = QHBoxLayout()
+        layout_degree = QHBoxLayout()
+        layout_title = QHBoxLayout()
+        layout_date = QHBoxLayout()
+        layout_duration = QHBoxLayout()
+
+        layout_subject.addWidget(self.subject_label)
+        layout_subject.addWidget(self.subject)
+
+        layout_degree.addWidget(self.degree_label)
+        layout_degree.addWidget(self.degree)
+
+        layout_title.addWidget(self.title_label)
+        layout_title.addWidget(self.title)
+
+        layout_date.addWidget(self.date_label)
+        layout_date.addWidget(self.date)
+
+        layout_duration.addWidget(self.duration_label)
+        layout_duration.addWidget(self.duration)
+
+        layout.addLayout(layout_subject)
+        layout.addLayout(layout_degree)
+        layout.addLayout(layout_title)
+        layout.addLayout(layout_date)
+        layout.addLayout(layout_duration)
+
+        #layout.addWidget(self.subject_label)
+        #layout.addWidget(self.degree_label)
+        #layout.addWidget(self.title_label)
+        #layout.addWidget(self.date_label)
+        #layout.addWidget(self.duration_label)
+        self.go_exam_button = QPushButton('Create exam')
+        layout_run_exam = QHBoxLayout()
+        layout_run_exam.addWidget(self.go_exam_button)
+        layout.addLayout(layout_run_exam)
+        #self.go_exam_button.clicked.connect(self.go_exam)
+
+    def register_listener(self, key, listener):
+        """Registers listeners for the center view.
+
+        Available listeners are:
+
+        - ('_____', '_____'): description
+        """
+        ##'info', 'button'): self._create_exam,
+        if key[0] == 'button':
+            #self.go_exam_button.clicked.connect(partial(listener, self.subject, self.degree, self.title, self.date, self.duration))
+            self.go_exam_button.clicked.connect(partial(self._go_exam, listener))
+        else:
+            assert False, 'Unkown event key {0}'.format(key)
+
+    def _go_exam(self, listener):
+        # print "InfoView._go_exam(self, listener)"
+        # print "\tSubject: \"%s\"" % self.subject.text()
+        # print "\tDegree: \"%s\"" % self.degree.text()
+        # print "\tTitle: \"%s\"" % self.title.text()
+        # print "\tDate: \"%s\"" % self.date.text()
+        # print "\tDuration: \"%s\"" % self.duration.text()
+
+        # Cast to str because the QLineEdit returns a QString
+        listener(str(self.subject.text()),
+                 str(self.degree.text()),
+                 str(self.title.text()),
+                 str(self.date.text()),
+                 str(self.duration.text()))
+
+class CenterView(QWidget):
+    def __init__(self, parent=None):
+        super(CenterView, self).__init__(parent)
+        layout = QHBoxLayout()
+        self.setLayout(layout)
+        self.examview = ExamView(self)
+        self.previewview =  PreviewView(self)
+        layout.addWidget(self.examview)
+        layout.addWidget(self.previewview)
+
+    def register_listener(self, key, listener):
+        """Registers listeners for the center view.
+
+        Available listeners are:
+
+        - ('_____', '_____'): description
+        """
+        #'exam', 'info', 'button'): self._create_exam,
+        if key[0] == 'exam':
+            self.examview.register_listener(key[1:], listener)
+        else:
+            assert False, 'Unkown event key {0}'.format(key)
 
 class MainWindow(QMainWindow):
     """
@@ -239,7 +349,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Exam Creator")
         self.setWindowIcon(QIcon(resource_path('logo.svg')))
         self.adjustSize()
-        self.setFixedSize(self.sizeHint())
+        #self.setFixedSize(self.sizeHint())
 
 
 class Interface(object):
@@ -269,7 +379,7 @@ class Interface(object):
         ('action', 'session', 'close').
 
         """
-        for key, listener in listener.iteritems():
+        for key, listener in listeners.iteritems():
             self.register_listener((key), listener)
 
     def register_listener(self, key, listener):
@@ -281,6 +391,8 @@ class Interface(object):
         print 'Interface.register_listener - key[0]:', key[0]
         if key[0] == 'actions':
             self.actions_manager.register_listener(key[1:], listener)
+        elif key[0] == 'center':
+            self.window.central_widget.register_listener(key[1:], listener)
         else:
             assert False, 'Unkown event key {0}'.format(key)
 
