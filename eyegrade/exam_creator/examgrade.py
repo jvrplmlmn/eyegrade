@@ -10,6 +10,8 @@ import eyegrade.exammaker as exammaker
 class ProgramManager(object):
     def __init__(self, interface):
         self.interface = interface
+        self.listQuestions = []
+        # Listeners
         self._register_listeners()
 
     def run(self):
@@ -21,6 +23,7 @@ class ProgramManager(object):
             ('actions', 'help', 'help'): self._action_help,
             ('actions', 'help', 'website'): self._action_website,
             ('actions', 'help', 'source'): self._action_source_code,
+            # Create exam button
             ('center', 'exam', 'info', 'button'): self._create_exam,
         }
         self.interface.register_listeners(listeners)
@@ -36,6 +39,10 @@ class ProgramManager(object):
     def _action_source_code(self):
         """Callback for the source code action."""
         webbrowser.open('https://github.com/jvrplmlmn/eyegrade', new=2)
+
+    def addQuestion(self, question):
+        import inspect
+        print '%s.%s.%s' % (self.__class__.__module__, self.__class__.__name__, inspect.stack()[0][3])
 
     def _create_exam(self, subject, degree, title, date, duration):
         print "_create_exam"
@@ -103,15 +110,14 @@ class ProgramManager(object):
         print '\tmaker.exam_config', maker.exam_config
         print '\tmaker.empty_variables', maker.empty_variables
 
-    # def create_exam(self, model, shuffle, with_solution=False):
-    #     """Creates a new exam.
-    #
-    #        'shuffle' must be a boolean. If True, the exam is shuffled
-    #        again even if it was previously shuffled. If False, it is
-    #        only shuffled if it was not previously shuffled.
-    #
-    #     """
-
+        # def create_exam(self, model, shuffle, with_solution=False):
+        #     """Creates a new exam.
+        #
+        #        'shuffle' must be a boolean. If True, the exam is shuffled
+        #        again even if it was previously shuffled. If False, it is
+        #        only shuffled if it was not previously shuffled.
+        #
+        #     """
         models = '0A'
         dont_shuffle_again = False
         for model in models:

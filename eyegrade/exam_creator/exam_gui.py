@@ -5,6 +5,7 @@ from PyQt4.QtGui import (QAction,
                          QDialog,
                          QDialogButtonBox,
                          QHBoxLayout,
+                         QHeaderView,
                          QLineEdit,
                          QListWidget,
                          QListWidgetItem,
@@ -14,6 +15,8 @@ from PyQt4.QtGui import (QAction,
                          QLabel,
                          QMenu,
                          QPushButton,
+                         QTreeWidget,
+                         QTreeWidgetItem,
                          QVBoxLayout,
                          QWidget)
 
@@ -80,6 +83,116 @@ class DialogAbout(QDialog):
         layout.addWidget(label)
         layout.addWidget(buttons)
 
+
+class DialogExamHeaders(QDialog):
+    def __init__(self, parent):
+        super(DialogExamHeaders, self).__init__(parent)
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        self.subject_label = QLabel('Subject')
+        self.degree_label = QLabel('Degree')
+        self.title_label = QLabel('Title')
+        self.date_label = QLabel('Date')
+        self.duration_label = QLabel('Duration')
+
+        self.subject = QLineEdit('SUBJECT')
+        self.degree = QLineEdit('DEGREE')
+        self.title = QLineEdit('TITLE')
+        self.date = QLineEdit('January 1st, 2013')
+        self.duration = QLineEdit('10 min.')
+
+        layout_subject = QHBoxLayout()
+        layout_degree = QHBoxLayout()
+        layout_title = QHBoxLayout()
+        layout_date = QHBoxLayout()
+        layout_duration = QHBoxLayout()
+
+        layout_subject.addWidget(self.subject_label)
+        layout_subject.addWidget(self.subject)
+
+        layout_degree.addWidget(self.degree_label)
+        layout_degree.addWidget(self.degree)
+
+        layout_title.addWidget(self.title_label)
+        layout_title.addWidget(self.title)
+
+        layout_date.addWidget(self.date_label)
+        layout_date.addWidget(self.date)
+
+        layout_duration.addWidget(self.duration_label)
+        layout_duration.addWidget(self.duration)
+
+        layout.addLayout(layout_subject)
+        layout.addLayout(layout_degree)
+        layout.addLayout(layout_title)
+        layout.addLayout(layout_date)
+        layout.addLayout(layout_duration)
+
+        #self.acceptButton = QPushButton('Accept')
+        #self.cancelButton = QPushButton('Cancel')
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        #buttons.accepted.connect(self.accept)
+        buttons.accepted.connect(self.on_acceptButton_clicked)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def on_acceptButton_clicked(self):
+        import inspect
+        print '%s.%s.%s' % (self.__class__.__module__, self.__class__.__name__, inspect.stack()[0][3])
+        print "\tSubject: \"%s\"" % self.subject.text()
+        print "\tDegree: \"%s\"" % self.degree.text()
+        print "\tTitle: \"%s\"" % self.title.text()
+        print "\tDate: \"%s\"" % self.date.text()
+        print "\tDuration: \"%s\"" % self.duration.text()
+        print "\n\tNOT IMPLEMENTED:\n" \
+              "\t\t1 Validate\n" \
+              "\t\t2 Return values\n"
+        self.accept()
+
+class DialogAddQuestion(QDialog):
+    def __init__(self, parent):
+        super(DialogAddQuestion, self).__init__(parent)
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        self.questionLabel = QLabel("Question text")
+        self.answer1Label = QLabel("Answer 1")
+        self.answer2Label = QLabel("Answer 2")
+        self.questionText = QLineEdit()
+        self.answer1Text = QLineEdit()
+        self.answer2Text = QLineEdit()
+        self.buttonsLayout = QHBoxLayout()
+        self.addButton = QPushButton('Add')
+        self.cancelButton = QPushButton('Cancel')
+        layout.addWidget(self.questionLabel)
+        layout.addWidget(self.questionText)
+        layout.addWidget(self.answer1Label)
+        layout.addWidget(self.answer1Text)
+        layout.addWidget(self.answer2Label)
+        layout.addWidget(self.answer2Text)
+        layout.addLayout(self.buttonsLayout)
+        self.buttonsLayout.addWidget(self.addButton)
+        self.buttonsLayout.addWidget(self.cancelButton)
+        self.addButton.clicked.connect(self.on_addButton_clicked)
+        self.cancelButton.clicked.connect(self.close)
+
+
+        #self.go_exam_button.clicked.connect(partial(self._go_exam, listener))
+    def on_addButton_clicked(self):
+        import inspect
+        print '%s.%s.%s' % (self.__class__.__module__, self.__class__.__name__, inspect.stack()[0][3])
+        print "\tquestionText: %s" % self.questionText.text()
+        print "\tanswer #1: %s" % self.answer1Text.text()
+        print "\tanswer #2: %s" % self.answer2Text.text()
+        print "\n\tNOT IMPLEMENTED:\n" \
+              "\t\t1 Validate\n" \
+              "\t\t2 Return values\n"
+        self.parent().addQuestionToTree(str(self.questionText.text()))
+        self.accept()
+
+class DialogEditQuestion(DialogAddQuestion):
+    def __init__(self, parent):
+        super(DialogAddQuestion, self).__init__(parent)
 
 class ActionsManager(object):
     """Creates and manages the toolbar buttons."""
@@ -191,27 +304,104 @@ class PreviewView(QWidget):
 #         super(Q, self).__init__(parent)
 #         QListWidgetItem('Q #1', self)
 
+
+
+
 class QuestionView(QWidget):
-    def __init__(self, parent, content=None):
-        super(QuestionView, self).__init__(parent)
+    def __init__(self):
+        super(QuestionView, self).__init__()
         layout = QVBoxLayout()
         self.setLayout(layout)
-        self.listWidget = QListWidget()
-        QListWidgetItem('#1', self.listWidget)
-        QListWidgetItem('#2', self.listWidget)
-        layout.addWidget(self.listWidget)
+        #self.listWidget = QListWidget()
+        self.treeWidget = QTreeWidget()
+        self.treeWidget.setHeaderHidden(True)
+        self.addButton = QPushButton('Add')
+        #QListWidgetItem('#1', self.listWidget)
+        #QListWidgetItem('#2', self.listWidget)
+        #layout.addWidget(self.listWidget)
+        layout.addWidget(self.treeWidget)
+        layout.addWidget(self.addButton)
+        self.addButton.clicked.connect(self.on_addButton_clicked)
+
+    #@QtCore.pyqtSlot()
+    def on_addButton_clicked(self):
+        print "Opening DialogAddQuestion"
+        addDlg = DialogAddQuestion(self)
+        addDlg.exec_()
+
+
+class NewExamView(QWidget):
+    def __init__(self, parent):
+        super(NewExamView, self).__init__(parent)
+        # GUI
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        self.examHeadersButton = QPushButton('Edit Exam Headers')
+        self.questionsTree = QTreeWidget()
+        self.addQuestionButton = QPushButton('Add Question')
+        self.createExamButton = QPushButton('Create Exam')
+        lowerButtonslayout = QHBoxLayout()
+        lowerButtonslayout.addWidget(self.addQuestionButton)
+        lowerButtonslayout.addWidget(self.createExamButton)
+        layout.addWidget(self.examHeadersButton)
+        layout.addWidget(self.questionsTree)
+        layout.addLayout(lowerButtonslayout)
+
+        # Tree
+        self.questionsTree.setColumnCount(3)
+        self.questionsTree.setHeaderHidden(True)
+        header = self.questionsTree.header()
+        header.setResizeMode(0, QHeaderView.Stretch)
+        header.setResizeMode(1, QHeaderView.ResizeToContents)
+        header.setResizeMode(2, QHeaderView.ResizeToContents)
+
+        # Populate tree
+        self.listQuestionsOnTree = []
+
+        # Signals
+        self.examHeadersButton.clicked.connect(self._showDialogExamHeaders)
+        self.addQuestionButton.clicked.connect(self._showDialogAddQuestion)
+
+    def _showDialogExamHeaders(self):
+        examHeadersDlg = DialogExamHeaders(self)
+        examHeadersDlg.exec_()
+
+    def _showDialogAddQuestion(self):
+        addQuestionDlg = DialogAddQuestion(self)
+        addQuestionDlg.exec_()
+
+    def _updateQuestionsTree(self):
+        import inspect
+        print '%s.%s.%s' % (self.__class__.__module__, self.__class__.__name__, inspect.stack()[0][3])
+        self.questionsTree.clear()
+        for question in self.listQuestionsOnTree:
+            print question
+            item = QTreeWidgetItem([question, self.tr("Edit"), self.tr("Remove")])
+            item.setIcon(1, QIcon(resource_path('edit.svg')))
+            item.setIcon(2, QIcon(resource_path('delete.svg')))
+            self.questionsTree.addTopLevelItem(item)
+
+    def addQuestionToTree(self, question):
+        import inspect
+        print '%s.%s.%s' % (self.__class__.__module__, self.__class__.__name__, inspect.stack()[0][3])
+        print question
+        self.listQuestionsOnTree.append(question)
+        self._updateQuestionsTree()
 
 class ExamView(QWidget):
     def __init__(self, parent):
         super(ExamView, self).__init__(parent)
-        layout = QVBoxLayout()
+        #layout = QVBoxLayout()
+        layout = QHBoxLayout()
         self.setLayout(layout)
         self.infoview = InfoWidget()
-        self.label_examview = QLabel('Label (ExamView)')
-        self.button = QPushButton('Button (ExamView)')
+        self.questionview = QuestionView()
+        #self.label_examview = QLabel('Label (ExamView)')
+        #self.button = QPushButton('Button (ExamView)')
         layout.addWidget(self.infoview)
-        layout.addWidget(self.label_examview)
-        layout.addWidget(self.button)
+        layout.addWidget(self.questionview)
+        #layout.addWidget(self.label_examview)
+        #layout.addWidget(self.button)
 
     def register_listener(self, key, listener):
         """Registers listeners for the center view.
@@ -315,10 +505,11 @@ class CenterView(QWidget):
         super(CenterView, self).__init__(parent)
         layout = QHBoxLayout()
         self.setLayout(layout)
-        self.examview = ExamView(self)
-        self.previewview =  PreviewView(self)
+        #self.examview = ExamView(self)
+        self.examview = NewExamView(self)
+        #self.previewview =  PreviewView(self)
         layout.addWidget(self.examview)
-        layout.addWidget(self.previewview)
+        #layout.addWidget(self.previewview)
 
     def register_listener(self, key, listener):
         """Registers listeners for the center view.
@@ -330,6 +521,8 @@ class CenterView(QWidget):
         #'exam', 'info', 'button'): self._create_exam,
         if key[0] == 'exam':
             self.examview.register_listener(key[1:], listener)
+        # elif key[0] == 'addQuestion':
+        #     self.examview.register_listener(key[1:], listener)
         else:
             assert False, 'Unkown event key {0}'.format(key)
 
@@ -392,11 +585,16 @@ class Interface(object):
         if key[0] == 'actions':
             self.actions_manager.register_listener(key[1:], listener)
         elif key[0] == 'center':
-            self.window.central_widget.register_listener(key[1:], listener)
+            print 'exam_gui.Interface.register_listener > key == center deactivated'
+            #self.window.central_widget.register_listener(key[1:], listener)
         else:
             assert False, 'Unkown event key {0}'.format(key)
 
 
     def show_about_dialog(self):
         dialog = DialogAbout(self.window)
+        dialog.exec_()
+
+    def dialog_add_question(self):
+        dialog = DialogAddQuestion(self.window)
         dialog.exec_()
